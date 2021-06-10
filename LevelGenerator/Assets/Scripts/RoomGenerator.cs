@@ -89,6 +89,26 @@ public class RoomGenerator : MonoBehaviour
 
     }
 
+        public static List<Room> getFinalRooms(Room[] rooms){
+            List<Room> bottomNodes = new List<Room>();
+            for(int i = 0; i < rooms.Length; i++){
+                if ( ( i * 2 >= rooms.Length || rooms[i * 2]   == null) && (i * 2 >= rooms.Length||rooms[i * 2]   == null)  ){
+                    bottomNodes.Add(rooms[i]);
+                }
+            }
+
+            return bottomNodes;
+        }  
+
+
+        public static void placeRooms(List<Room> rooms){
+
+
+
+        }
+
+
+
 
 }
 
