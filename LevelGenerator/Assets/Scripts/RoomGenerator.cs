@@ -47,7 +47,6 @@ public class RoomGenerator : MonoBehaviour
     public int minLength;
     [Range(50, 100)]
     public int minWidth;
-
     public int minArea;
 
     public GameObject roomPrefab;
@@ -136,41 +135,32 @@ public class RoomGenerator : MonoBehaviour
             return true;
 
         }
-        public List<Room> getFinalRooms(Room[] rooms){
-            List<Room> bottomNodes = new List<Room>();
+        public List<int> getFinalRooms(Room[] rooms){
+            List<int> leaves = new List<int>();
             int count =  0;
 
             for(int i = 0; i < rooms.Length; i++){
                 if(rooms[i] != null)
                     count++;
                 if (isBottomNode(rooms, i) ){
-                    bottomNodes.Add(rooms[i]);
+                    leaves.Add(i);
                 }
             }
             print("Rooms in tree: " + count);
-            return bottomNodes;
+            return leaves;
         }  
 
 
-        public void placeRooms(List<Room> rooms){
-            for(int count = 0; count<  maxRooms; count++){
+        public void placeRooms(List<int> leafIndexes, Room[] rooms){
+            for(int i = 0; i <  maxRooms && i  < leafIndexes.Count; i++){
                 
-                if(rooms.Count <= 0)
-                    break;
-                
-                int i = Random.Range(0, rooms.Count-1);
-
-                print("Tried to index at: " + i);
-                print("Room count: " + rooms.Count);
-
-                float x =  (rooms[i].getPt1().x + rooms[i].getPt2().x) / 2;
-                float y =  (rooms[i].getPt1().y + rooms[i].getPt2().y) / 2;
+                Room r = rooms[leafIndexes[i]];
+                float x =  (r.getPt1().x + r.getPt2().x) / 2;
+                float y =  (r.getPt1().y + r.getPt2().y) / 2;
 
                 GameObject go = Instantiate(roomPrefab, new Vector3(x, y, 0), Quaternion.identity) as GameObject;
-                go.transform.localScale = new Vector3(rooms[i].getLength() * .9f, rooms[i].getWidth() *.9f, 1);
-                rooms.RemoveAt(i);
-
-
+                go.transform.localScale = new Vector3(r.getLength() * .9f, r.getWidth() *.9f, 1);
+                
             }
 
             print(400);
@@ -182,10 +172,10 @@ public class RoomGenerator : MonoBehaviour
         public void createRooms(){
             Room[] rooms = generateRooms();
             print("Length of initial rooms array: " + rooms.Length);
-            List<Room> finalRooms = getFinalRooms(rooms);
+            List<int> finalRooms = getFinalRooms(rooms);
             print("Number of bottom row nodes: " + finalRooms.Count);
 
-            placeRooms(finalRooms);
+            placeRooms(finalRooms, rooms);
         }
 
 
