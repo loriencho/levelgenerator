@@ -9,13 +9,15 @@ public class RoomGenerator : MonoBehaviour
         private Vector2 pt1;
         private Vector2 pt2;
 
+        private bool hasChildren = false;
+
         public Room(float x1, float y1, float x2, float y2) {
             this.pt1 = new Vector2(x1, y1);
             this.pt2 = new Vector2(x2, y2);
 
         } 
-        public float getArea() {
-            return Mathf.Abs(pt1.x - pt2.x) * Mathf.Abs(pt1.y - pt2.y);
+        public float getMinLength() {
+            return Mathf.Min(Mathf.Abs(pt1.x - pt2.x), Mathf.Abs(pt1.y - pt2.y));
         }
 
         public Vector2 getPt1(){
@@ -27,13 +29,22 @@ public class RoomGenerator : MonoBehaviour
 
         }
 
+        public bool getHasChildren() {
+            return hasChildren;
+
+        }
+
+        public void setHasChildren(bool b) {
+            hasChildren = b;
+        }
+
     }
 
     [Range(1, 15)]
     public int maxRooms;
 
-    [Range(50, 100)]
-    public int minArea;
+    [Range(100, 300)]
+    public int minRoomLength;
 
     public GameObject room;
 
@@ -56,9 +67,14 @@ public class RoomGenerator : MonoBehaviour
 
         Room child1, child2;
 
+        // Checking to see if room too small to make children
+        if (parent.getMinLength() / 2 < minRoomLength) {
+            return; 
+        }
+
         //horizontal split
         if (Random.value < .5){
-            float hSplit = Mathf.Abs(parentPt1.y - parentPt2.y) / 2;
+            float hSplit = Random.Range (parentPt1.y + minRoomLength, parentPt1.y - minRoomLength);
 
             // create children
             child1 = new Room(parentPt1.x, parentPt1.y, parentPt2.x, hSplit);
@@ -68,65 +84,59 @@ public class RoomGenerator : MonoBehaviour
 
         //vertical split
         else{  
-            float vSplit = Mathf.Abs(parentPt1.x - parentPt2.x) / 2;
+            float vSplit = Random.Range (parentPt1.x + minRoomLength, parentPt1.x - minRoomLength);
             // create children
             child1 = new Room(parentPt1.x, parentPt1.y, vSplit, parentPt2.y);
             child2 = new Room(vSplit, parentPt1.y, parentPt2.x, parentPt2.y);           
         }
+
+        // add to tree and generate rooms on children
+
+        //left child
+        rooms[index].setHasChildren(true);
+        rooms[index * 2] = child1;
+        generateRooms(rooms, index*2, numRooms + 1);
+        //right child
+        rooms[index * 2 + 1] = child2;
+        generateRooms(rooms, index*2 + 1, numRooms +1 );
+
+
         
-        // check area of children
-        if (child1.getArea() < minArea){
-            return;
-        }
-
-        else{
-            // add to tree and generate rooms on children
-
-            //left child
-            rooms[index * 2] = child1;
-            generateRooms(rooms, index*2, numRooms + 1);
-            //right child
-            rooms[index * 2 + 1] = child2;
-            generateRooms(rooms, index*2 + 1, numRooms +1 );
-
-
-        }
 
     }
 
-        private bool isBottomNode(Room[] rooms, int index){
-            if (rooms[index] == null)
+        private bool isLeaf(Room[] rooms, int index){
+            if (rooms[index] == null) {
                 return false;
-            if (index*2 < rooms.Length){
-                if (rooms[index*2] != null)
-                    return false;
             }
-            return true;
+            return rooms[index].getHasChildren();
 
         }
         public List<Room> getFinalRooms(Room[] rooms){
-            List<Room> bottomNodes = new List<Room>();
+            List<Room> leaves = new List<Room>();
             int count =  0;
 
             for(int i = 0; i < rooms.Length; i++){
                 if(rooms[i] != null)
                     count++;
-                if (isBottomNode(rooms, i) ){
-                    bottomNodes.Add(rooms[i]);
+                if (isLeaf(rooms, i) ){
+                    leaves.Add(rooms[i]);
                 }
             }
             print("Rooms in tree: " + count);
-            return bottomNodes;
+            return leaves;
         }  
 
 
         public void placeRooms(List<Room> rooms){
-            for(int i = 0; i <  rooms.Count; i ++){
-                
-                float x =  (rooms[i].getPt1().x + rooms[i].getPt2().x) / 2;
-                float y =  (rooms[i].getPt1().y + rooms[i].getPt2().y) / 2;
 
-                Instantiate(room, new Vector3(x, y, 0), Quaternion.identity);
+            for(int i = 0; i <  rooms.Count; i ++){
+                for (int x  = (int) rooms[i].getPt1().x; x <= rooms[i].getPt2().x; x++) {
+                    //for (int y =  (int) rooms[i].getPt1().y; y >= rooms[i].getPt2().y; y--) {
+                    print("test");
+                    Instantiate(room, new Vector3(x, y, 0), Quaternion.identity);
+                    }
+                }
 
             }
 
