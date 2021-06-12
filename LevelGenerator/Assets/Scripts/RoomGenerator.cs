@@ -43,7 +43,11 @@ public class RoomGenerator : MonoBehaviour
     public int maxRooms;
     public static int amountRooms = 0;
 
-    [Range(100, 500)]
+    [Range(50, 100)]
+    public int minLength;
+    [Range(50, 100)]
+    public int minWidth;
+
     public int minArea;
 
     public GameObject roomPrefab;
@@ -58,6 +62,7 @@ public class RoomGenerator : MonoBehaviour
 
     }
     public Room[] generateRooms() {
+        minArea = minLength * minWidth;
         
         Room[] r = new Room[256];
         r[1] = new Room(-300.0f, 300.0f, 300.0f, -300.0f);
@@ -73,9 +78,13 @@ public class RoomGenerator : MonoBehaviour
 
         Room child1, child2;
 
+        // Make sure that too-small children won't be made
+        if ((parent.getLength() *  parent.getWidth()) / 2 < minArea) {
+            return;
+        }
         //horizontal split
         if (Random.Range(0.0f, 1.0f) < .5){
-            float hSplit = (parentPt1.y + parentPt2.y) / 2;
+            float hSplit = Random.Range(parentPt2.y + minLength, parentPt1.y - minLength);
 
             // create children
             child1 = new Room(parentPt1.x, parentPt1.y, parentPt2.x, hSplit);
@@ -86,41 +95,34 @@ public class RoomGenerator : MonoBehaviour
         //vertical split
         else{  
 
-            float vSplit = (parentPt1.x + parentPt2.x) / 2;
+            float vSplit = Random.Range(parentPt1.x + minLength, parentPt2.x - minLength);
+
             // create children
             child1 = new Room(parentPt1.x, parentPt1.y, vSplit, parentPt2.y);
             child2 = new Room(vSplit, parentPt1.y, parentPt2.x, parentPt2.y);           
         }
         
-        // check area of children
-        if (child1.getArea() < minArea){
-            print("Area too small");
-            print(child1.getArea());
-            print(child2.getArea());
-            print(minArea);
 
+        // add to tree and generate rooms on children
+
+        if (index * 2 + 1 >= rooms.Length){
+            rooms = expandRoomsArr(rooms);
+        }
+
+        // Preventing the creation of rooms with too small widths and lengths 
+        if ((int) Mathf.Min(child2.getLength(), child1.getLength()) < minLength || ((int) Mathf.Min(child1.getWidth(), child2.getWidth()) < minWidth)) {
             return;
         }
 
-        else{
-            // add to tree and generate rooms on children
-            //left child
+        //left child
+        rooms[index * 2] = child1;
+        generateRooms(rooms, index*2);
 
-            if (index * 2 + 1 >= rooms.Length){
-                rooms = expandRoomsArr(rooms);
-            }
-
-            rooms[index * 2] = child1;
-            generateRooms(rooms, index*2);
+        //right child
+        rooms[index * 2 + 1] = child2;
+        generateRooms(rooms, index*2 + 1 );
 
 
-            //right child
-            rooms[index * 2 + 1] = child2;
-            generateRooms(rooms, index*2 + 1 );
-
-
-
-        }
 
     }
 
@@ -165,7 +167,7 @@ public class RoomGenerator : MonoBehaviour
                 float y =  (rooms[i].getPt1().y + rooms[i].getPt2().y) / 2;
 
                 GameObject go = Instantiate(roomPrefab, new Vector3(x, y, 0), Quaternion.identity) as GameObject;
-                go.transform.localScale = new Vector3(rooms[i].getLength(), rooms[i].getWidth(), 1);
+                go.transform.localScale = new Vector3(rooms[i].getLength() * .9f, rooms[i].getWidth() *.9f, 1);
                 rooms.RemoveAt(i);
 
 
