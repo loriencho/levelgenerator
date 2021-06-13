@@ -6,6 +6,7 @@ public class RoomGenerator : MonoBehaviour
 {
 
     public class Room {
+        public string split;
         private Vector2 pt1;
         private Vector2 pt2;
 
@@ -37,6 +38,7 @@ public class RoomGenerator : MonoBehaviour
 
         }
 
+
     }
 
     [Range(1, 15)]
@@ -47,9 +49,10 @@ public class RoomGenerator : MonoBehaviour
     public int minLength;
     [Range(50, 100)]
     public int minWidth;
-    public int minArea;
+    private int minArea;
 
     public GameObject roomPrefab;
+    public GameObject corridorPrefab;
 
     public Room[] expandRoomsArr(Room[] rooms){
         Room[] newArr = new Room[rooms.Length* 2];
@@ -87,7 +90,9 @@ public class RoomGenerator : MonoBehaviour
 
             // create children
             child1 = new Room(parentPt1.x, parentPt1.y, parentPt2.x, hSplit);
+            child1.split = "horizontal";
             child2 = new Room(parentPt1.x, hSplit, parentPt2.x, parentPt2.y);
+            child2.split = "horizontal";
 
         }
 
@@ -98,7 +103,10 @@ public class RoomGenerator : MonoBehaviour
 
             // create children
             child1 = new Room(parentPt1.x, parentPt1.y, vSplit, parentPt2.y);
-            child2 = new Room(vSplit, parentPt1.y, parentPt2.x, parentPt2.y);           
+            child1.split = "vertical";
+            child2 = new Room(vSplit, parentPt1.y, parentPt2.x, parentPt2.y);  
+            child2.split = "vertical";
+         
         }
         
 
@@ -162,22 +170,72 @@ public class RoomGenerator : MonoBehaviour
                 go.transform.localScale = new Vector3(r.getLength() * .9f, r.getWidth() *.9f, 1);
                 
             }
-
-            print(400);
-
-
         }
-
 
         public void createRooms(){
             Room[] rooms = generateRooms();
             print("Length of initial rooms array: " + rooms.Length);
             List<int> finalRooms = getFinalRooms(rooms);
             print("Number of bottom row nodes: " + finalRooms.Count);
-
             placeRooms(finalRooms, rooms);
+            connectRooms(finalRooms, rooms);
         }
 
+        public void addCorridor(Room room1, Room room2, string split){
+            float corridorSize =  1/4f * Mathf.Min(minWidth, minLength);
+            float x, y;
+            Room smaller, bigger;
+            if (split.Equals("horizontal")){
+                y = (room2.getPt1().y + room1.getPt2().y) / 2;
+
+                if (room1.getLength() < room2.getLength()){
+                    bigger = room2;
+                    smaller = room1;
+                }
+                else {
+                    bigger = room1;
+                    smaller = room2;
+                    
+                }
+
+                x = Random.Range(smaller.getPt1().x  + corridorSize, smaller.getPt2().x - corridorSize);
+        
+            }
+            else{
+                x = (room2.getPt1().x + room1.getPt2().x) / 2;
+                if (room1.getWidth() < room2.getWidth()){
+                    bigger = room2;
+                    smaller = room1;
+                }
+                else {
+                    bigger = room1;
+                    smaller = room2;
+                    
+                }
+
+                y = Random.Range(smaller.getPt1().y  + corridorSize, smaller.getPt2().y - corridorSize);
+            }
+
+            GameObject go = Instantiate(corridorPrefab, new Vector3(x, y, 0), Quaternion.identity) as GameObject;          
+        }
+
+
+        public void connectRooms(List<int> finalRooms, Room[] rooms){
+            // Connect sisters
+            
+            Room room1, room2;
+            for(int i = 0; i  < finalRooms.Count && i <  maxRooms; i+=2){
+                if (i + 1 == finalRooms.Count || i+1 >=  maxRooms )
+                    break;
+
+                room1 = rooms[finalRooms[i]];
+                room2 = rooms[finalRooms[i+1]];
+
+                addCorridor(room1, room2, room1.split); 
+            }
+
+
+        }
 
         void Start(){
             createRooms();
