@@ -1,4 +1,4 @@
-﻿using System.Collections;
+using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
 
@@ -9,6 +9,9 @@ public class RoomGenerator : MonoBehaviour
         public string split;
         private Vector2 pt1;
         private Vector2 pt2;
+        private Room parent;
+        private Room sister;
+        private bool isConnected = false;
 
         public Room(float x1, float y1, float x2, float y2) {
             this.pt1 = new Vector2(x1, y1);
@@ -37,6 +40,34 @@ public class RoomGenerator : MonoBehaviour
             return Mathf.Abs(pt1.y - pt2.y);
 
         }
+
+        public Room getParent() {
+            return parent;
+        }
+
+        public void setParent(Room p) {
+            this.parent = p;
+        }
+
+
+        public Room getSister() {
+            return sister;
+        }
+
+        
+        public void setSister(Room s) {
+            this.sister = s;
+        }
+
+
+        public bool connectStatus() {
+            return isConnected;
+        }
+
+        public void  setConnectStatus(bool status) {
+            this.isConnected = status;
+        }
+
 
 
     }
@@ -86,7 +117,7 @@ public class RoomGenerator : MonoBehaviour
         }
         //horizontal split
         if (Random.Range(0.0f, 1.0f) < .5){
-            float hSplit = Random.Range(parentPt2.y + minLength, parentPt1.y - minLength);
+            float hSplit = Random.Range(parentPt2.y + minLength * 1.3f, parentPt1.y - minLength * 1.3f);
 
             // create children
             child1 = new Room(parentPt1.x, parentPt1.y, parentPt2.x, hSplit);
@@ -99,7 +130,7 @@ public class RoomGenerator : MonoBehaviour
         //vertical split
         else{  
 
-            float vSplit = Random.Range(parentPt1.x + minLength, parentPt2.x - minLength);
+            float vSplit = Random.Range(parentPt1.x + minLength * 1.3f, parentPt2.x - minLength * 1.3f);
 
             // create children
             child1 = new Room(parentPt1.x, parentPt1.y, vSplit, parentPt2.y);
@@ -109,7 +140,6 @@ public class RoomGenerator : MonoBehaviour
          
         }
         
-
         // add to tree and generate rooms on children
 
         if (index * 2 + 1 >= rooms.Length){
@@ -122,10 +152,15 @@ public class RoomGenerator : MonoBehaviour
         }
 
         //left child
+        child1.setParent(parent);
+        child1.setSister(child2);
+
         rooms[index * 2] = child1;
         generateRooms(rooms, index*2);
 
         //right child
+        child2.setParent(parent);
+        child2.setSister(child1);
         rooms[index * 2 + 1] = child2;
         generateRooms(rooms, index*2 + 1 );
 
@@ -133,7 +168,7 @@ public class RoomGenerator : MonoBehaviour
 
     }
 
-        private bool isBottomNode(Room[] rooms, int index){
+        private bool isLeaf(Room[] rooms, int index){
             if (rooms[index] == null)
                 return false;
             if (index*2 < rooms.Length){
@@ -150,7 +185,7 @@ public class RoomGenerator : MonoBehaviour
             for(int i = 0; i < rooms.Length; i++){
                 if(rooms[i] != null)
                     count++;
-                if (isBottomNode(rooms, i) ){
+                if (isLeaf(rooms, i) ){
                     leaves.Add(i);
                 }
             }
@@ -183,40 +218,89 @@ public class RoomGenerator : MonoBehaviour
 
         public void addCorridor(Room room1, Room room2, string split){
             float corridorSize =  1/4f * Mathf.Min(minWidth, minLength);
-            float x, y;
+            float x, y, corridorLength;
             Room smaller, bigger;
+            Vector2 smallerPt1, smallerPt2, biggerPt1, biggerPt2;
+
             if (split.Equals("horizontal")){
-                y = (room2.getPt1().y + room1.getPt2().y) / 2;
-
-                if (room1.getLength() < room2.getLength()){
-                    bigger = room2;
+                // Gets the smaller of the two rooms and gets  points
+                if (room1.getLength() < room2.getLength()) {
                     smaller = room1;
-                }
-                else {
-                    bigger = room1;
+                    bigger = room2;
+                } else {
                     smaller = room2;
-                    
+                    bigger = room1;
+                }
+                smallerPt1 = smaller.getPt1();
+                smallerPt2 = smaller.getPt2();
+                biggerPt1 = bigger.getPt1();
+                biggerPt2 = bigger.getPt2();
+
+                // Find the middle of their y values to use as center
+                if (smallerPt2.y > biggerPt1.y) {
+                    y = (smallerPt2.y + biggerPt1.y) / 2;
+                    corridorLength = (smallerPt2.y * .9f) - (biggerPt1.y * .9f);
+                    print("Option A" + corridorLength);
+ 
+                } else {
+                    y = (smallerPt1.y + biggerPt2.y ) / 2;
+                    print("SP1y" + smallerPt1.y);
+                    print("BP2Y" + biggerPt2.y);
+                    print(y);
+
+                    corridorLength = (biggerPt2.y * .9f)- (smallerPt1.y * .9f);
+                    print("Option B" + corridorLength);
+
                 }
 
-                x = Random.Range(smaller.getPt1().x  + corridorSize, smaller.getPt2().x - corridorSize);
+                // Generates an x value within the bounds of smaller room
+                // for the corridor center point
+                x = Random.Range(smallerPt1.x + corridorSize, smallerPt2.x - corridorSize);
         
+                // Create corridor GameObject and scale it to size
+
+                GameObject go = Instantiate(corridorPrefab, new Vector3(x, y, 0), Quaternion.identity) as GameObject;          
+                go.transform.localScale = new Vector3(50, 50, 1);
+
             }
             else{
-                x = (room2.getPt1().x + room1.getPt2().x) / 2;
-                if (room1.getWidth() < room2.getWidth()){
-                    bigger = room2;
+
+                // Gets the smaller of the two rooms and gets  points
+                if (room1.getWidth() < room2.getWidth()) {
                     smaller = room1;
-                }
-                else {
-                    bigger = room1;
+                    bigger = room2;
+                } else {
                     smaller = room2;
-                    
+                    bigger = room1;
+                }
+                smallerPt1 = smaller.getPt1();
+                smallerPt2 = smaller.getPt2();
+                biggerPt1 = bigger.getPt1();
+                biggerPt2 = bigger.getPt2();
+
+                // Find the middle of their x values to use for center
+                if (smallerPt2.x < biggerPt1.x) {
+                    x = (smallerPt2.x + biggerPt1.x) / 2;
+                    corridorLength = (biggerPt1.x * .9f) - (smallerPt2.x *.9f);
+                    print("Option C " + corridorLength);
+                } else {
+                    x = (smallerPt1.x + biggerPt2.x) / 2;
+                    corridorLength = (smallerPt1.x * .9f) - (biggerPt2.x * .9f);
+                    print("Option D " + corridorLength);
+
+
                 }
 
-                y = Random.Range(smaller.getPt1().y  + corridorSize, smaller.getPt2().y - corridorSize);
+                // Generates an x value within the bounds of smaller room
+                // for the corridor center point
+                y = Random.Range(smallerPt2.y + corridorSize, smallerPt1.y - corridorSize);
+                // Create corridor GameObject and scale it to size
+                GameObject go = Instantiate(corridorPrefab, new Vector3(x, y, 0), Quaternion.identity) as GameObject;          
+                go.transform.localScale = new Vector3(50, 50, 1);
+
             }
 
-            GameObject go = Instantiate(corridorPrefab, new Vector3(x, y, 0), Quaternion.identity) as GameObject;          
+
         }
 
 
@@ -224,14 +308,18 @@ public class RoomGenerator : MonoBehaviour
             // Connect sisters
             
             Room room1, room2;
-            for(int i = 0; i  < finalRooms.Count && i <  maxRooms; i+=2){
-                if (i + 1 == finalRooms.Count || i+1 >=  maxRooms )
-                    break;
-
+            for(int i = 0; i < finalRooms.Count && i <  maxRooms; i+=1){
                 room1 = rooms[finalRooms[i]];
-                room2 = rooms[finalRooms[i+1]];
 
+                if (room1.connectStatus() == true) {
+                    continue;
+                }
+
+                room2 = room1.getSister();
                 addCorridor(room1, room2, room1.split); 
+                room1.setConnectStatus(true);
+                room2.setConnectStatus(true);
+
             }
 
 

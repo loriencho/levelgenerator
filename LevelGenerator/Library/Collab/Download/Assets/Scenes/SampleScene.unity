@@ -383,6 +383,7 @@ MonoBehaviour:
   maxRooms: 7
   minLength: 79
   minWidth: 75
-  minArea: 481
   roomPrefab: {fileID: 8132467640637430891, guid: 220fb158a2cb6a9449ec0e9f429fba6f,
+    type: 3}
+  corridorPrefab: {fileID: 6016672251533430122, guid: c7c6005354abf674682e114c667d8528,
     type: 3}
