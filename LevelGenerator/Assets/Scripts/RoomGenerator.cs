@@ -1,6 +1,8 @@
 using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
+using UnityEngine.Tilemaps;
+
 
 public class RoomGenerator : MonoBehaviour
 {
@@ -86,6 +88,9 @@ public class RoomGenerator : MonoBehaviour
 
     public GameObject roomPrefab;
     public GameObject corridorPrefab;
+
+    public Tilemap roomMap;
+    public Tile corridorTile, floorTile;
 
     public Room[] expandRoomsArr(Room[] rooms){
         Room[] newArr = new Room[rooms.Length* 2];
@@ -198,13 +203,21 @@ public class RoomGenerator : MonoBehaviour
             for(int i = 0; i <  maxRooms && i  < leafIndexes.Count; i++){
                 
                 Room r = rooms[leafIndexes[i]];
-                float x =  (r.getPt1().x + r.getPt2().x) / 2;
-                float y =  (r.getPt1().y + r.getPt2().y) / 2;
+                float cx =  (r.getPt1().x + r.getPt2().x) / 2;
+                float cy =  (r.getPt1().y + r.getPt2().y) / 2;
+                float halfLength =  r.getLength() / 2;
+                float halfWidth = r.getWidth() / 2;
                 r.setInstantStatus(true);
 
-                GameObject go = Instantiate(roomPrefab, new Vector3(x, y, 0), Quaternion.identity) as GameObject;
-                go.transform.localScale = new Vector3(r.getLength() * .9f, r.getWidth() *.9f, 1);
+                // GameObject go = Instantiate(roomPrefab, new Vector3(x, y, 0), Quaternion.identity) as GameObject;
+                // go.transform.localScale = new Vector3(r.getLength() * .9f, r.getWidth() *.9f, 1);
                 
+                for (float x = cx - halfLength; x < cx + halfLength; x++) {
+                    for (float y = cy - halfWidth; y < cy + halfWidth; y++) {
+                        roomMap.SetTile(new Vector3Int((int) x, (int) y, 1), floorTile);
+                    }
+                }
+
             }
         }
 
