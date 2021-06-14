@@ -9,9 +9,9 @@ public class RoomGenerator : MonoBehaviour
         public string split;
         private Vector2 pt1;
         private Vector2 pt2;
-        private Room parent;
         private Room sister;
         private bool isConnected = false;
+        private bool isInstantiated = false;
 
         public Room(float x1, float y1, float x2, float y2) {
             this.pt1 = new Vector2(x1, y1);
@@ -41,19 +41,9 @@ public class RoomGenerator : MonoBehaviour
 
         }
 
-        public Room getParent() {
-            return parent;
-        }
-
-        public void setParent(Room p) {
-            this.parent = p;
-        }
-
-
         public Room getSister() {
             return sister;
         }
-
         
         public void setSister(Room s) {
             this.sister = s;
@@ -66,6 +56,18 @@ public class RoomGenerator : MonoBehaviour
 
         public void  setConnectStatus(bool status) {
             this.isConnected = status;
+        }
+
+        public Vector2 getCenter(){
+            return new Vector2((getPt1().x + getPt2().x) / 2, (getPt1().y + getPt2().y) / 2);
+        }
+
+        public bool instantiationStatus() {
+            return isInstantiated;
+        }
+
+        public void  setInstantStatus(bool status) {
+            this.isInstantiated = status;
         }
 
 
@@ -152,14 +154,12 @@ public class RoomGenerator : MonoBehaviour
         }
 
         //left child
-        child1.setParent(parent);
         child1.setSister(child2);
 
         rooms[index * 2] = child1;
         generateRooms(rooms, index*2);
 
         //right child
-        child2.setParent(parent);
         child2.setSister(child1);
         rooms[index * 2 + 1] = child2;
         generateRooms(rooms, index*2 + 1 );
@@ -200,6 +200,7 @@ public class RoomGenerator : MonoBehaviour
                 Room r = rooms[leafIndexes[i]];
                 float x =  (r.getPt1().x + r.getPt2().x) / 2;
                 float y =  (r.getPt1().y + r.getPt2().y) / 2;
+                r.setInstantStatus(true);
 
                 GameObject go = Instantiate(roomPrefab, new Vector3(x, y, 0), Quaternion.identity) as GameObject;
                 go.transform.localScale = new Vector3(r.getLength() * .9f, r.getWidth() *.9f, 1);
@@ -220,83 +221,73 @@ public class RoomGenerator : MonoBehaviour
             float corridorSize =  1/4f * Mathf.Min(minWidth, minLength);
             float x, y, corridorLength;
             Room smaller, bigger;
-            Vector2 smallerPt1, smallerPt2, biggerPt1, biggerPt2;
+
+            if (!(room1.instantiationStatus()) || !(room2.instantiationStatus())) {
+                return;
+            }
 
             if (split.Equals("horizontal")){
-                // Gets the smaller of the two rooms and gets  points
+                Room top, bottom;
+                // Gets the room on top
+                if (room1.getCenter().y > room2.getCenter().y) {
+                    top = room1;
+                    bottom = room2;
+                } else {
+                    top = room2;
+                    bottom = room1;
+                }
+
+                corridorLength = (top.getCenter().y - bottom.getCenter().y) * 0.6f;
+
+                // Get the room with the shorter length
                 if (room1.getLength() < room2.getLength()) {
                     smaller = room1;
                     bigger = room2;
                 } else {
                     smaller = room2;
-                    bigger = room1;
-                }
-                smallerPt1 = smaller.getPt1();
-                smallerPt2 = smaller.getPt2();
-                biggerPt1 = bigger.getPt1();
-                biggerPt2 = bigger.getPt2();
-
-                // Find the middle of their y values to use as center
-                if (smallerPt2.y > biggerPt1.y) {
-                    y = (smallerPt2.y + biggerPt1.y) / 2;
-                    corridorLength = (smallerPt2.y * .9f) - (biggerPt1.y * .9f);
-                    print("Option A" + corridorLength);
- 
-                } else {
-                    y = (smallerPt1.y + biggerPt2.y ) / 2;
-                    print("SP1y" + smallerPt1.y);
-                    print("BP2Y" + biggerPt2.y);
-                    print(y);
-
-                    corridorLength = (biggerPt2.y * .9f)- (smallerPt1.y * .9f);
-                    print("Option B" + corridorLength);
-
+                    bigger = room2;
                 }
 
                 // Generates an x value within the bounds of smaller room
                 // for the corridor center point
-                x = Random.Range(smallerPt1.x + corridorSize, smallerPt2.x - corridorSize);
-        
-                // Create corridor GameObject and scale it to size
+                x = Random.Range(smaller.getPt1().x + corridorSize, smaller.getPt2().x - corridorSize);
+                y = bottom.getPt1().y;
 
+                // Create corridor GameObject and scale it to size
                 GameObject go = Instantiate(corridorPrefab, new Vector3(x, y, 0), Quaternion.identity) as GameObject;          
-                go.transform.localScale = new Vector3(50, 50, 1);
+                go.transform.localScale = new Vector3(corridorSize, corridorLength, 1);
 
             }
             else{
+                Room left, right;
+                // Gets the room on left and right
+                if (room1.getCenter().x < room2.getCenter().x) {
+                    left = room1;
+                    right = room2;
+                } else {
+                    left = room2;
+                    right = room1;
+                }
 
-                // Gets the smaller of the two rooms and gets  points
+                corridorLength = (right.getCenter().x - left.getCenter().x) * .6f;
+
+                // Get the room with the shorter width
                 if (room1.getWidth() < room2.getWidth()) {
                     smaller = room1;
                     bigger = room2;
                 } else {
                     smaller = room2;
-                    bigger = room1;
-                }
-                smallerPt1 = smaller.getPt1();
-                smallerPt2 = smaller.getPt2();
-                biggerPt1 = bigger.getPt1();
-                biggerPt2 = bigger.getPt2();
-
-                // Find the middle of their x values to use for center
-                if (smallerPt2.x < biggerPt1.x) {
-                    x = (smallerPt2.x + biggerPt1.x) / 2;
-                    corridorLength = (biggerPt1.x * .9f) - (smallerPt2.x *.9f);
-                    print("Option C " + corridorLength);
-                } else {
-                    x = (smallerPt1.x + biggerPt2.x) / 2;
-                    corridorLength = (smallerPt1.x * .9f) - (biggerPt2.x * .9f);
-                    print("Option D " + corridorLength);
-
-
+                    bigger = room2;
                 }
 
                 // Generates an x value within the bounds of smaller room
                 // for the corridor center point
-                y = Random.Range(smallerPt2.y + corridorSize, smallerPt1.y - corridorSize);
+                y = Random.Range(smaller.getPt2().y + corridorSize, smaller.getPt1().y- corridorSize);
+                x = left.getPt2().x;
+                
                 // Create corridor GameObject and scale it to size
                 GameObject go = Instantiate(corridorPrefab, new Vector3(x, y, 0), Quaternion.identity) as GameObject;          
-                go.transform.localScale = new Vector3(50, 50, 1);
+                go.transform.localScale = new Vector3(corridorLength, corridorSize, 1);
 
             }
 
@@ -308,7 +299,7 @@ public class RoomGenerator : MonoBehaviour
             // Connect sisters
             
             Room room1, room2;
-            for(int i = 0; i < finalRooms.Count && i <  maxRooms; i+=1){
+            for(int i = 0; i < finalRooms.Count && i <  maxRooms - 1; i+=1){
                 room1 = rooms[finalRooms[i]];
 
                 if (room1.connectStatus() == true) {
