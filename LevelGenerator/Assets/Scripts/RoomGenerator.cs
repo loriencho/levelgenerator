@@ -178,7 +178,7 @@ public class RoomGenerator : MonoBehaviour
             return true;
 
         }
-        public List<int> getFinalRooms(Room[] rooms){
+        public List<int> getLeaves(Room[] rooms){
             List<int> leaves = new List<int>();
             int count =  0;
 
@@ -211,10 +211,10 @@ public class RoomGenerator : MonoBehaviour
         public void createRooms(){
             Room[] rooms = generateRooms();
             print("Length of initial rooms array: " + rooms.Length);
-            List<int> finalRooms = getFinalRooms(rooms);
-            print("Number of bottom row nodes: " + finalRooms.Count);
-            placeRooms(finalRooms, rooms);
-            connectRooms(finalRooms, rooms);
+            List<int> leaves = getLeaves(rooms);
+            print("Number of bottom row nodes: " + leaves.Count);
+            placeRooms(leaves, rooms);
+            connectSisters(leaves, rooms);
         }
 
         public void addCorridor(Room room1, Room room2, string split){
@@ -294,13 +294,11 @@ public class RoomGenerator : MonoBehaviour
 
         }
 
-
-        public void connectRooms(List<int> finalRooms, Room[] rooms){
-            // Connect sisters
+        public void connectSisters(List<int> leaves, Room[] rooms){
             
             Room room1, room2;
-            for(int i = 0; i < finalRooms.Count && i <  maxRooms - 1; i+=1){
-                room1 = rooms[finalRooms[i]];
+            for(int i = 0; i < leaves.Count && i <  maxRooms - 1; i+=1){
+                room1 = rooms[leaves[i]];
 
                 if (room1.connectStatus() == true) {
                     continue;
@@ -310,9 +308,91 @@ public class RoomGenerator : MonoBehaviour
                 addCorridor(room1, room2, room1.split); 
                 room1.setConnectStatus(true);
                 room2.setConnectStatus(true);
+            }
+            
+            // while parent index is not 0 or less than 0, conenct parents
 
+
+        }
+        
+        public int getParent(int childIndex){
+            if (childIndex % 2 == 0) // left child
+                return childIndex / 2;
+            return (childIndex - 1) / 2; //right child
+
+        }
+
+        // returns indexes of all children
+        public List<int> getAllLeafChildren(Room parent, Room[] rooms){
+            // TO DO // 
+
+            return new List<int>();
+        }
+
+        public bool canConnect(Room room1, Room room2, string split){
+            Room smaller;
+            float corridorSize =  1/4f * Mathf.Min(minWidth, minLength);
+            float rangeSize;
+            if (!(room1.instantiationStatus()) || !(room2.instantiationStatus())) {
+                return false;
+            }
+            if (split.Equals("horizontal")){
+                // Get the room with the shorter length
+                if (room1.getLength() < room2.getLength()) {
+                    smaller = room1;
+                } else {
+                    smaller = room2;
+                }
+
+                // Finds length of range used to generate random point
+                rangeSize = smaller.getPt2().x - corridorSize - (smaller.getPt1().x + corridorSize);
+            }
+            else{
+                // Get the room with the shorter width
+                if (room1.getWidth() < room2.getWidth()) {
+                    smaller = room1;
+                } else {
+                    smaller = room2;
+                }
+
+                // Finds length of range used to generate random point
+                rangeSize = smaller.getPt2().y + corridorSize - (smaller.getPt1().y- corridorSize);
             }
 
+            // Range must be 0 or more
+            return rangeSize >= 0 ;
+
+        }
+
+        public void connectParents(int childIndex, Room[] rooms){
+            if (childIndex == 0) // at root
+                return;
+
+            Room parent1 = rooms[getParent(childIndex)];
+            if (parent1.connectStatus())
+                return;
+            
+            // Connect parent with its sister!
+
+            string split = parent1.split;
+            List<int> parent1Children = getAllLeafChildren(parent1, rooms);
+            Room parent2 = parent1.getSister();
+            List<int> parent2Children = getAllLeafChildren(parent2, rooms);
+            
+            for(int i = 0; i < parent1Children.Count; i++){
+                for(int j = 0; j < parent2Children.Count; j++){
+                    if(canConnect(rooms[parent1Children[i]], rooms[parent2Children[j]], split)){
+                        addCorridor(rooms[parent1Children[i]], rooms[parent2Children[j]], split);
+
+                        // break out of both for loops
+                        i = parent1Children.Count;
+                        break;
+                    }
+                }
+
+            }
+            
+            connectParents(getParent(childIndex), rooms);
 
         }
 
