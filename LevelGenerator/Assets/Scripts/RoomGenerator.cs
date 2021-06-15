@@ -224,6 +224,7 @@ public class RoomGenerator : MonoBehaviour
         }
 
         public void addCorridor(Room room1, Room room2){
+            
             float corridorSize =  1/3f * Mathf.Min(minWidth, minLength);
             float x, y, corridorLength, corridorWidth;
 
@@ -431,25 +432,8 @@ public class RoomGenerator : MonoBehaviour
             bool room2NoChildrenInstant = (room2Children.Count == 0);
             int currentRoom;
 
-            if (room1NoChildrenInstant && room2NoChildrenInstant)
+            if (room1NoChildrenInstant ||  room2NoChildrenInstant)
                 return;  // nothing to connect
-            
-            // if only room1 has no children, go up until the children of room2 have something to connect to
-
-            while(room1NoChildrenInstant) {
-                print("Going up");
-                currentRoom = getParent(roomIndex);
-                room1Children = getAllLeafChildren(currentRoom, rooms);
-                room1NoChildrenInstant = (room1Children.Count == 0);
-            }
-            // if only room2 has no children, go up until the children of room1 have something to connect to
-            while(room2NoChildrenInstant) {
-                print("Going up");
-                currentRoom = getParent(roomIndex);
-                room2Children = getAllLeafChildren(currentRoom, rooms);
-                room2NoChildrenInstant = (room2Children.Count == 0);
-            }
-    
 
             // Connecting of the rooms       
             print(room1Children.Count);
