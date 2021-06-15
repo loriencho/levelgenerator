@@ -42,6 +42,12 @@ TagManager:
   - name: Default
     uniqueID: 0
     locked: 0
+  - name: Floors
+    uniqueID: 803486601
+    locked: 0
+  - name: Corridors
+    uniqueID: 2182370173
+    locked: 0
   - name: Player
     uniqueID: 4062111211
     locked: 0
