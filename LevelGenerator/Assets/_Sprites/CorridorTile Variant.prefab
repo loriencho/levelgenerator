@@ -81,12 +81,17 @@ PrefabInstance:
     - target: {fileID: 8132467640637430891, guid: 220fb158a2cb6a9449ec0e9f429fba6f,
         type: 3}
       propertyPath: m_Name
-      value: CorridorTile
+      value: CorridorTile Variant
       objectReference: {fileID: 0}
     - target: {fileID: 8132467640637430891, guid: 220fb158a2cb6a9449ec0e9f429fba6f,
         type: 3}
       propertyPath: m_IsActive
       value: 1
+      objectReference: {fileID: 0}
+    - target: {fileID: 8132467640637430891, guid: 220fb158a2cb6a9449ec0e9f429fba6f,
+        type: 3}
+      propertyPath: m_TagString
+      value: Ground
       objectReference: {fileID: 0}
     m_RemovedComponents: []
   m_SourcePrefab: {fileID: 100100000, guid: 220fb158a2cb6a9449ec0e9f429fba6f, type: 3}
