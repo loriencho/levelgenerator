@@ -207,6 +207,7 @@ public class RoomGenerator : MonoBehaviour
 
 
         public void placeRooms(List<int> leafIndexes, Room[] rooms){
+            Room prev = null;
             for(int i = 0; i <  maxRooms && i  < leafIndexes.Count; i++){
                 
                 Room r = rooms[leafIndexes[i]];
@@ -344,12 +345,6 @@ public class RoomGenerator : MonoBehaviour
         // returns indexes of all children
         public List<int> getAllLeafChildren(int currentIndex, Room[] rooms){
             List<int> leafChildren = new List<int>();
-            if (isLeaf(rooms, currentIndex)) {
-                if (rooms[currentIndex].instantiationStatus()) {
-                    leafChildren.Add(currentIndex);
-                }
-                return leafChildren;
-            }
 
             if (rooms[currentIndex] == null){
                 return leafChildren;
@@ -368,9 +363,9 @@ public class RoomGenerator : MonoBehaviour
             if (isLeaf(rooms, rightChild)) {
                 if (rooms[rightChild].instantiationStatus()) {
                     leafChildren.Add(rightChild);            
-                } else {
+                } 
+            } else {
                 leafChildren.AddRange(getAllLeafChildren(rightChild, rooms));
-                }
             }
 
             return leafChildren;
@@ -404,7 +399,7 @@ public class RoomGenerator : MonoBehaviour
                 }
 
                 // Finds length of range used to generate random point
-                rangeSize = smaller.getPt2().y + corridorSize - (smaller.getPt1().y- corridorSize);
+                rangeSize = smaller.getPt1().y + corridorSize - (smaller.getPt2().y- corridorSize);
             }
 
             // Range must be 0 or more
@@ -454,7 +449,7 @@ public class RoomGenerator : MonoBehaviour
                 for(int j = 0; j < parent2Children.Count; j++){
                     if(canConnect(rooms[parent1Children[i]], rooms[parent2Children[j]], split)){
                         addCorridor(rooms[parent1Children[i]], rooms[parent2Children[j]], split);
-
+                    
                         // break out of both for loops
                         i = parent1Children.Count;
                         break;
