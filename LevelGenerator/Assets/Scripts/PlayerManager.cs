@@ -35,9 +35,10 @@ public class PlayerManager : MonoBehaviour
         }
         if (move){
             transform.Translate(v);
-            hit = Physics2D.Raycast(transform.position, -Vector2.up);
+            hit = Physics2D.Raycast(transform.position, -transform.forward);
             if (hit.collider == null)
                 transform.Translate(-v);
+            
         }
 
 
