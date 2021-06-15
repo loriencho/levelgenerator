@@ -76,7 +76,7 @@ public class RoomGenerator : MonoBehaviour
 
     }
 
-    [Range(1, 15)]
+    [Range(1, 1000)]
     public int maxRooms;
     public static int amountRooms = 0;
 
@@ -88,9 +88,11 @@ public class RoomGenerator : MonoBehaviour
 
     public GameObject roomPrefab;
     public GameObject corridorPrefab;
+    public Transform dungeon;
 
     public Tilemap roomMap;
     public Tile corridorTile, floorTile;
+
 
     public Room[] expandRoomsArr(Room[] rooms){
         Room[] newArr = new Room[rooms.Length* 2];
@@ -174,15 +176,20 @@ public class RoomGenerator : MonoBehaviour
     }
 
         private bool isLeaf(Room[] rooms, int index){
-            if (rooms[index] == null)
+            if (rooms[index] == null){
                 return false;
+
+            }
             if (index*2 < rooms.Length){
+
                 if (rooms[index*2] != null)
                     return false;
             }
             return true;
 
         }
+
+
         public List<int> getLeaves(Room[] rooms){
             List<int> leaves = new List<int>();
             int count =  0;
@@ -209,25 +216,16 @@ public class RoomGenerator : MonoBehaviour
                 float halfWidth = r.getWidth() / 2;
                 r.setInstantStatus(true);
 
-                // GameObject go = Instantiate(roomPrefab, new Vector3(x, y, 0), Quaternion.identity) as GameObject;
-                // go.transform.localScale = new Vector3(r.getLength() * .9f, r.getWidth() *.9f, 1);
+                GameObject go = Instantiate(roomPrefab, new Vector3(cx, cy, 0), Quaternion.identity, dungeon) as GameObject;
+                go.transform.localScale = new Vector3(r.getLength() * .9f, r.getWidth() *.9f, 1);
                 
-                for (float x = cx - halfLength; x < cx + halfLength; x++) {
-                    for (float y = cy - halfWidth; y < cy + halfWidth; y++) {
-                        roomMap.SetTile(new Vector3Int((int) x, (int) y, 1), floorTile);
-                    }
-                }
+                // for (float x = cx - halfLength; x < cx + halfLength; x++) {
+                //     for (float y = cy - halfWidth; y < cy + halfWidth; y++) {
+                //         roomMap.SetTile(new Vector3Int((int) x, (int) y, 1), floorTile);
+                //     }
+                // }
 
             }
-        }
-
-        public void createRooms(){
-            Room[] rooms = generateRooms();
-            print("Length of initial rooms array: " + rooms.Length);
-            List<int> leaves = getLeaves(rooms);
-            print("Number of bottom row nodes: " + leaves.Count);
-            placeRooms(leaves, rooms);
-            connectSisters(leaves, rooms);
         }
 
         public void addCorridor(Room room1, Room room2, string split){
@@ -335,11 +333,48 @@ public class RoomGenerator : MonoBehaviour
 
         }
 
-        // returns indexes of all children
-        public List<int> getAllLeafChildren(Room parent, Room[] rooms){
-            // TO DO // 
+        public int getSister(int roomIndex){
+            if(roomIndex % 2 == 0)
+                return roomIndex + 1;
+            else
+                return roomIndex - 1;
 
-            return new List<int>();
+        }
+        
+        // returns indexes of all children
+        public List<int> getAllLeafChildren(int currentIndex, Room[] rooms){
+            List<int> leafChildren = new List<int>();
+            if (isLeaf(rooms, currentIndex)) {
+                if (rooms[currentIndex].instantiationStatus()) {
+                    leafChildren.Add(currentIndex);
+                }
+                return leafChildren;
+            }
+
+            if (rooms[currentIndex] == null){
+                return leafChildren;
+            }
+
+            int leftChild = currentIndex * 2; 
+            int rightChild  =currentIndex * 2 + 1;
+
+            if (isLeaf(rooms, leftChild)) {
+                if (rooms[leftChild].instantiationStatus())
+                    leafChildren.Add(leftChild);
+            } else {
+                leafChildren.AddRange(getAllLeafChildren(leftChild, rooms));
+            }
+
+            if (isLeaf(rooms, rightChild)) {
+                if (rooms[rightChild].instantiationStatus()) {
+                    leafChildren.Add(rightChild);            
+                } else {
+                leafChildren.AddRange(getAllLeafChildren(rightChild, rooms));
+                }
+            }
+
+            return leafChildren;
+
         }
 
         public bool canConnect(Room room1, Room room2, string split){
@@ -378,19 +413,42 @@ public class RoomGenerator : MonoBehaviour
         }
 
         public void connectParents(int childIndex, Room[] rooms){
-            if (childIndex == 0) // at root
-                return;
+            Room parent1, parent2; 
+            if (childIndex == 2 || childIndex == 3) // at root 
+            {    
+                print("Reached root");
 
-            Room parent1 = rooms[getParent(childIndex)];
-            if (parent1.connectStatus())
-                return;
-            
-            // Connect parent with its sister!
+                parent1= rooms[childIndex];
+                parent2 = parent1.getSister();
+            }
+
+            else {
+                parent1 = rooms[getParent(childIndex)];
+
+                if (parent1 == null){
+                    print("Parent1 == null. Parent1 is " + getParent(childIndex));
+                    print("Parent1 == null. Child is " + childIndex);
+
+                }
+                if (parent1.connectStatus())
+                    return;
+                
+                // Connect parent with its sister!
+                parent2 = rooms[getSister(getParent(childIndex))];
+                if (parent2 == null) { 
+                    print("The parent index is " + getParent(childIndex));
+                    print("The child index is " + childIndex);
+
+                    print("Null at " + getSister(getParent(childIndex)));
+                    return;  
+                    }
+
+            }
+
 
             string split = parent1.split;
-            List<int> parent1Children = getAllLeafChildren(parent1, rooms);
-            Room parent2 = parent1.getSister();
-            List<int> parent2Children = getAllLeafChildren(parent2, rooms);
+            List<int> parent1Children = getAllLeafChildren(getParent(childIndex), rooms);
+            List<int> parent2Children = getAllLeafChildren(getSister(getParent(childIndex)), rooms);
             
             for(int i = 0; i < parent1Children.Count; i++){
                 for(int j = 0; j < parent2Children.Count; j++){
@@ -404,11 +462,31 @@ public class RoomGenerator : MonoBehaviour
                 }
 
             }
+
+            parent1.setConnectStatus(true);
+            parent2.setConnectStatus(true);
             
+            if (childIndex == 2 || childIndex == 3){
+                return;
+            }
+            print("This is the childIndex, " + childIndex + ", this is hte parent index, " + getParent(childIndex));
             connectParents(getParent(childIndex), rooms);
 
         }
 
+        public void createRooms(){
+            Room[] rooms = generateRooms();
+            print("Length of initial rooms array: " + rooms.Length);
+            List<int> leaves = getLeaves(rooms);
+            print("Number of bottom row nodes: " + leaves.Count);
+            placeRooms(leaves, rooms);
+            connectSisters(leaves, rooms);
+            for (int i =0; i < leaves.Count; i++){
+                connectParents(leaves[i], rooms);
+            }
+            
+        }
+        
         void Start(){
             createRooms();
         }

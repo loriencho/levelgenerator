@@ -636,13 +636,14 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 68dfb5d0bb0e2d941905d8beabd636f8, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  maxRooms: 8
+  maxRooms: 1000
   minLength: 62
   minWidth: 62
   roomPrefab: {fileID: 8132467640637430891, guid: 220fb158a2cb6a9449ec0e9f429fba6f,
     type: 3}
   corridorPrefab: {fileID: 6016672251533430122, guid: c7c6005354abf674682e114c667d8528,
     type: 3}
+  dungeon: {fileID: 0}
   roomMap: {fileID: 517191515}
   corridorTile: {fileID: 11400000, guid: 471853985ed4b5242ad12af71ace0cf6, type: 2}
   floorTile: {fileID: 11400000, guid: 471853985ed4b5242ad12af71ace0cf6, type: 2}
