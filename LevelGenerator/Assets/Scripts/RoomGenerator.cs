@@ -444,6 +444,30 @@ public class RoomGenerator : MonoBehaviour
             string split = parent1.split;
             List<int> parent1Children = getAllLeafChildren(getParent(childIndex), rooms);
             List<int> parent2Children = getAllLeafChildren(getSister(getParent(childIndex)), rooms);
+
+            bool parent1NoChildren = (parent1Children.Count == 0);
+            bool parent2NoChildren = (parent2Children.Count == 0);
+            int currentParent = childIndex;
+
+            if (parent1NoChildren && parent2NoChildren)
+                return;
+            else if (parent1NoChildren) {
+                while(parent1NoChildren) {
+                    print("Going up");
+                    currentParent = getParent(currentParent);
+                    parent1Children = getAllLeafChildren(currentParent, rooms);
+                    parent1NoChildren = (parent1Children.Count == 0);
+                }
+            }
+            else if (parent2NoChildren){
+                while(parent2NoChildren) {
+                    print("Going up");
+
+                    currentParent = getParent(currentParent);
+                    parent2Children = getAllLeafChildren(currentParent, rooms);
+                    parent2NoChildren = (parent2Children.Count == 0);
+                }
+            }
             
             for(int i = 0; i < parent1Children.Count; i++){
                 for(int j = 0; j < parent2Children.Count; j++){
@@ -453,6 +477,11 @@ public class RoomGenerator : MonoBehaviour
                         // break out of both for loops
                         i = parent1Children.Count;
                         break;
+                    } else{
+
+                        if(i== parent1Children.Count-1 && j== parent2Children.Count-1)
+                            print("Could not count");
+
                     }
                 }
 
@@ -476,7 +505,7 @@ public class RoomGenerator : MonoBehaviour
             print("Number of bottom row nodes: " + leaves.Count);
             placeRooms(leaves, rooms);
             connectSisters(leaves, rooms);
-            for (int i =0; i < leaves.Count; i++){
+            for (int i =0; i < leaves.Count && i <maxRooms; i++){
                 connectParents(leaves[i], rooms);
             }
             
