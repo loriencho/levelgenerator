@@ -76,15 +76,25 @@ public class RoomGenerator : MonoBehaviour
 
     }
 
-    [Range(1, 1000)]
+    [Range(15, 100)]
     public int maxRooms;
     public static int amountRooms = 0;
 
+    [Range(.85f, 1.0f)]
+    public float scale;
+    
     [Range(50, 100)]
     public int minLength;
     [Range(50, 100)]
     public int minWidth;
     private int minArea;
+
+
+    [Range(100, 500)]
+    public int dungeonLength;
+
+    [Range(100, 500)]
+    public int dungeonWidth;
 
     public GameObject roomPrefab;
     public GameObject corridorPrefab;
@@ -107,7 +117,7 @@ public class RoomGenerator : MonoBehaviour
         minArea = minLength * minWidth;
         
         Room[] r = new Room[256];
-        r[1] = new Room(-300.0f, 300.0f, 300.0f, -300.0f);
+        r[1] = new Room(-0.5f * dungeonWidth, 0.5f *  dungeonLength, 0.5f * dungeonWidth, -0.5f * dungeonLength);
         generateRooms(r, 1);
         return r;
     }
@@ -207,6 +217,7 @@ public class RoomGenerator : MonoBehaviour
 
 
         public void placeRooms(List<int> leafIndexes, Room[] rooms){
+            Room prev = null;
             for(int i = 0; i <  maxRooms && i  < leafIndexes.Count; i++){
                 
                 Room r = rooms[leafIndexes[i]];
@@ -217,7 +228,12 @@ public class RoomGenerator : MonoBehaviour
                 r.setInstantStatus(true);
 
                 GameObject go = Instantiate(roomPrefab, new Vector3(cx, cy, 0), Quaternion.identity, dungeon) as GameObject;
-                go.transform.localScale = new Vector3(r.getLength() * .9f, r.getWidth() *.9f, 1);
+                go.transform.localScale = new Vector3(r.getLength() * scale, r.getWidth() *scale, 1);
+
+                if (prev != null) {
+                    addCorridor(prev, r);
+                }
+                prev = r;
                 
 
             }
@@ -274,43 +290,42 @@ public class RoomGenerator : MonoBehaviour
             }
 
             else {
-                // Room roomA, roomB;
-                // if (Random.value < .5) {
-                //     roomA = room1;
-                //     roomB = room2;
-                // } else {
-                //     roomA = room2;
-                //     roomB = room1;
-                // }
+                Room roomA, roomB;
+                if (Random.value < .5) {
+                    roomA = room1;
+                    roomB = room2;
+                } else {
+                    roomA = room2;
+                    roomB = room1;
+                }
 
-                // Vector2 roomAPt1 = roomA.getPt1();
-                // Vector2 roomAPt2 = roomA.getPt2();
-                // Vector2 roomBPt1 = roomB.getPt1();
-                // Vector2 roomBPt2 = roomB.getPt2();
+                Vector2 roomAPt1 = roomA.getPt1();
+                Vector2 roomAPt2 = roomA.getPt2();
+                Vector2 roomBPt1 = roomB.getPt1();
+                Vector2 roomBPt2 = roomB.getPt2();
 
-                // // Generate corner x from room A
-                // x = Random.Range(roomAPt1.x + corridorSize, roomAPt2.x - corridorSize);
-                // // Generate corner y from room B
-                // y = Random.Range(roomBPt2.y + corridorSize, roomAPt1.y - corridorSize);
+                // Generate corner x from room A
+                x = Random.Range(roomAPt1.x + corridorSize, roomAPt2.x - corridorSize);
+                // Generate corner y from room B
+                y = Random.Range(roomBPt2.y + corridorSize, roomAPt1.y - corridorSize);
 
-                // // Length of horizontal corridor is x distance from room B
-                // corridorWidth = Mathf.Abs(roomA.getCenter().y - y);
+                // Length of horizontal corridor is x distance from room B
+                corridorWidth = Mathf.Abs(roomA.getCenter().y - y);
 
-                // // Width of vertical corridor is y distance from room A
-                // corridorLength = Mathf.Abs(roomB.getCenter().x - x);
+                // Width of vertical corridor is y distance from room A
+                corridorLength = Mathf.Abs(roomB.getCenter().x - x);
 
 
-                // // Center of horizontal corridor: (Average of xc and xb , by)
-                // Vector3 hCor = new Vector3((x + roomB.getCenter().x) / 2, roomB.getCenter().y, 1.0f);
-                // // Center of vertical corridor: (xa, Average of yc and ya)
-                // Vector3 vCor  = new Vector3(roomA.getCenter().x, (y+ roomA.getCenter().y) / 2, 1.0f);
+                // Center of horizontal corridor: (Average of xc and xb , by)
+                Vector3 hCor = new Vector3((x + roomB.getCenter().x) / 2, roomB.getCenter().y, 1.0f);
+                // Center of vertical corridor: (xa, Average of yc and ya)
+                Vector3 vCor  = new Vector3(roomA.getCenter().x, (y+ roomA.getCenter().y) / 2, 1.0f);
 
                 
-                // GameObject hc = Instantiate(corridorPrefab, hCor, Quaternion.identity) as GameObject;          
-                // hc.transform.localScale = new Vector3(corridorLength, corridorSize, 1);
-                // GameObject vc = Instantiate(corridorPrefab, vCor, Quaternion.identity) as GameObject;          
-                // vc.transform.localScale = new Vector3(corridorSize, corridorWidth, 1);
-                //                 print("Sisters connected >w< bend");
+                GameObject hc = Instantiate(corridorPrefab, hCor, Quaternion.identity) as GameObject;          
+                hc.transform.localScale = new Vector3(corridorLength, corridorSize, 1);
+                GameObject vc = Instantiate(corridorPrefab, vCor, Quaternion.identity) as GameObject;          
+                vc.transform.localScale = new Vector3(corridorSize, corridorWidth, 1);
                 return;
 
             }
@@ -460,10 +475,10 @@ public class RoomGenerator : MonoBehaviour
             List<int> leaves = getLeaves(rooms);
             print("Number of bottom row nodes: " + leaves.Count);
             placeRooms(leaves, rooms);
-            connectSisters(leaves, rooms);
-            for (int i =0; i < leaves.Count && i <maxRooms; i++){
-                connectParents(leaves[i], rooms);
-            }
+            // connectSisters(leaves, rooms);
+            // for (int i =0; i < leaves.Count && i <maxRooms; i++){
+            //     connectParents(leaves[i], rooms);
+            // }
             
         }
         

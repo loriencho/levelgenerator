@@ -181,7 +181,7 @@ PrefabInstance:
     - target: {fileID: 6016672251533430120, guid: c7c6005354abf674682e114c667d8528,
         type: 3}
       propertyPath: m_RootOrder
-      value: 6
+      value: 5
       objectReference: {fileID: 0}
     - target: {fileID: 6016672251533430120, guid: c7c6005354abf674682e114c667d8528,
         type: 3}
@@ -692,7 +692,7 @@ PrefabInstance:
     - target: {fileID: 8132467640637430889, guid: 220fb158a2cb6a9449ec0e9f429fba6f,
         type: 3}
       propertyPath: m_RootOrder
-      value: 5
+      value: 6
       objectReference: {fileID: 0}
     - target: {fileID: 8132467640637430889, guid: 220fb158a2cb6a9449ec0e9f429fba6f,
         type: 3}
@@ -845,12 +845,15 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 68dfb5d0bb0e2d941905d8beabd636f8, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  maxRooms: 8
+  maxRooms: 15
+  scale: 0.9375
   minLength: 62
   minWidth: 62
+  dungeonLength: 500
+  dungeonWidth: 305
   roomPrefab: {fileID: 8132467640637430891, guid: 220fb158a2cb6a9449ec0e9f429fba6f,
     type: 3}
-  corridorPrefab: {fileID: 6016672251533430122, guid: c7c6005354abf674682e114c667d8528,
+  corridorPrefab: {fileID: 8132467640637430891, guid: 220fb158a2cb6a9449ec0e9f429fba6f,
     type: 3}
   dungeon: {fileID: 0}
   roomMap: {fileID: 517191515}

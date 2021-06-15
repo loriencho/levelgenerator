@@ -176,7 +176,7 @@ public class RoomGenerator : MonoBehaviour
     }
 
         private bool isLeaf(Room[] rooms, int index){
-            if (rooms[index] == null){
+            if (rooms[index] == null || index >= rooms.Length || index < 0){
                 return false;
 
             }
@@ -224,6 +224,7 @@ public class RoomGenerator : MonoBehaviour
         }
 
         public void addCorridor(Room room1, Room room2){
+            
             float corridorSize =  1/3f * Mathf.Min(minWidth, minLength);
             float x, y, corridorLength, corridorWidth;
 
@@ -239,10 +240,10 @@ public class RoomGenerator : MonoBehaviour
 
             // Determine to make corridor straight or bent
 
-            bool roomOneWithinRoomTwoVBounds = (room1Pt1.y < room2Pt1.y) && (room1Pt2.y > room2Pt2.y);
-            bool roomTwoWithinRoomTOneVBounds = (room2Pt1.y < room1Pt1.y) && (room2Pt2.y > room1Pt2.y);
-            bool roomOneWithinRoomTwoHBounds = (room1Pt1.x > room2Pt1.x) && (room1Pt2.x < room2Pt2.x);
-            bool roomTwoWithinRoomOneHBounds = (room2Pt1.x > room1Pt1.x) && (room2Pt2.x < room1Pt2.x);
+            bool roomOneWithinRoomTwoVBounds = (room1Pt1.y <= room2Pt1.y) && (room1Pt2.y >= room2Pt2.y);
+            bool roomTwoWithinRoomTOneVBounds = (room2Pt1.y <= room1Pt1.y) && (room2Pt2.y >= room1Pt2.y);
+            bool roomOneWithinRoomTwoHBounds = (room1Pt1.x >= room2Pt1.x) && (room1Pt2.x <= room2Pt2.x);
+            bool roomTwoWithinRoomOneHBounds = (room2Pt1.x >= room1Pt1.x) && (room2Pt2.x <= room1Pt2.x);
 
             // If vertically straight
             if (roomOneWithinRoomTwoVBounds || roomTwoWithinRoomTOneVBounds) {
@@ -254,7 +255,7 @@ public class RoomGenerator : MonoBehaviour
                 corridorWidth = Mathf.Abs(room1.getCenter().y - room2.getCenter().y); 
                 
                 GameObject go = Instantiate(corridorPrefab, new Vector3(x, y, 0), Quaternion.identity) as GameObject;          
-                go.transform.localScale = new Vector3(corridorSize, 100, 1);
+                go.transform.localScale = new Vector3(100, corridorSize, 1);
                 return;
             }
 
@@ -268,48 +269,48 @@ public class RoomGenerator : MonoBehaviour
                 corridorLength = Mathf.Abs(room1.getCenter().x - room2.getCenter().x); 
 
                 GameObject go = Instantiate(corridorPrefab, new Vector3(x, y, 0), Quaternion.identity) as GameObject;          
-                go.transform.localScale = new Vector3(100, corridorSize, 1);
+                go.transform.localScale = new Vector3(corridorSize, 100, 1);
                 return;
             }
 
             else {
-                Room roomA, roomB;
-                if (Random.value < .5) {
-                    roomA = room1;
-                    roomB = room2;
-                } else {
-                    roomA = room2;
-                    roomB = room1;
-                }
+                // Room roomA, roomB;
+                // if (Random.value < .5) {
+                //     roomA = room1;
+                //     roomB = room2;
+                // } else {
+                //     roomA = room2;
+                //     roomB = room1;
+                // }
 
-                Vector2 roomAPt1 = roomA.getPt1();
-                Vector2 roomAPt2 = roomA.getPt2();
-                Vector2 roomBPt1 = roomB.getPt1();
-                Vector2 roomBPt2 = roomB.getPt2();
+                // Vector2 roomAPt1 = roomA.getPt1();
+                // Vector2 roomAPt2 = roomA.getPt2();
+                // Vector2 roomBPt1 = roomB.getPt1();
+                // Vector2 roomBPt2 = roomB.getPt2();
 
-                // Generate corner x from room A
-                x = Random.Range(roomAPt1.x + corridorSize, roomAPt2.x - corridorSize);
-                // Generate corner y from room B
-                y = Random.Range(roomBPt2.y + corridorSize, roomAPt1.y - corridorSize);
+                // // Generate corner x from room A
+                // x = Random.Range(roomAPt1.x + corridorSize, roomAPt2.x - corridorSize);
+                // // Generate corner y from room B
+                // y = Random.Range(roomBPt2.y + corridorSize, roomAPt1.y - corridorSize);
 
-                // Length of horizontal corridor is x distance from room B
-                corridorWidth = Mathf.Abs(roomA.getCenter().y - y);
+                // // Length of horizontal corridor is x distance from room B
+                // corridorWidth = Mathf.Abs(roomA.getCenter().y - y);
 
-                // Width of vertical corridor is y distance from room A
-                corridorLength = Mathf.Abs(roomB.getCenter().x - x);
+                // // Width of vertical corridor is y distance from room A
+                // corridorLength = Mathf.Abs(roomB.getCenter().x - x);
 
 
-                // Center of horizontal corridor: (Average of xc and xb , by)
-                Vector3 hCor = new Vector3((x + roomB.getCenter().x) / 2, roomB.getCenter().y, 1.0f);
-                // Center of vertical corridor: (xa, Average of yc and ya)
-                Vector3 vCor  = new Vector3(roomA.getCenter().x, (y+ roomA.getCenter().y) / 2, 1.0f);
+                // // Center of horizontal corridor: (Average of xc and xb , by)
+                // Vector3 hCor = new Vector3((x + roomB.getCenter().x) / 2, roomB.getCenter().y, 1.0f);
+                // // Center of vertical corridor: (xa, Average of yc and ya)
+                // Vector3 vCor  = new Vector3(roomA.getCenter().x, (y+ roomA.getCenter().y) / 2, 1.0f);
 
                 
-                GameObject hc = Instantiate(corridorPrefab, hCor, Quaternion.identity) as GameObject;          
-                hc.transform.localScale = new Vector3(corridorLength, corridorSize, 1);
-                GameObject vc = Instantiate(corridorPrefab, vCor, Quaternion.identity) as GameObject;          
-                vc.transform.localScale = new Vector3(corridorSize, corridorWidth, 1);
-                
+                // GameObject hc = Instantiate(corridorPrefab, hCor, Quaternion.identity) as GameObject;          
+                // hc.transform.localScale = new Vector3(corridorLength, corridorSize, 1);
+                // GameObject vc = Instantiate(corridorPrefab, vCor, Quaternion.identity) as GameObject;          
+                // vc.transform.localScale = new Vector3(corridorSize, corridorWidth, 1);
+                //                 print("Sisters connected >w< bend");
                 return;
 
             }
@@ -330,6 +331,7 @@ public class RoomGenerator : MonoBehaviour
 
                 room2 = room1.getSister();
                 addCorridor(room1, room2); 
+
                 room1.setConnectStatus(true);
                 room2.setConnectStatus(true);
             }
@@ -385,96 +387,72 @@ public class RoomGenerator : MonoBehaviour
         }
 
 
-        public void connectParents(int childIndex, Room[] rooms){
-            Room parent1, parent2; 
-            if (childIndex == 2 || childIndex == 3) // at root 
+    public void connectParents(int roomIndex, Room[] rooms){
+
+            int room1, room2; 
+           
+            // If the room is the child of the root, connect with its sister, NOT parent!
+            if (roomIndex == 2 || roomIndex == 3) 
             {    
                 print("Reached root");
-
-                parent1= rooms[childIndex];
-                parent2 = parent1.getSister();
+                //set rooms to connect as the index and its sister
+                room1 = roomIndex;
+                room2 = getSister(room1);
             }
-
             else {
-                parent1 = rooms[getParent(childIndex)];
 
-                if (parent1 == null){
-                    print("Parent1 == null. Parent1 is " + getParent(childIndex));
-                    print("Parent1 == null. Child is " + childIndex);
+
+                // If room is not child of the room, connect its parents instead
+                room1 = getParent(roomIndex);
+                room2 = getSister(getParent(roomIndex));
+
+
+                // Log null parents for debugging
+                if (rooms[room1] == null){
+                    print("Parent1 == null. Parent1 is " + getParent(roomIndex));
+                    print("Parent1 == null. Child is " + roomIndex);
+                    return;
 
                 }
-                if (parent1.connectStatus())
-                    return;
-                
-                // Connect parent with its sister!
-                parent2 = rooms[getSister(getParent(childIndex))];
-                if (parent2 == null) { 
-                    print("The parent index is " + getParent(childIndex));
-                    print("The child index is " + childIndex);
+                if (rooms[room2] == null) { 
+                    print("The parent index is " + getParent(roomIndex));
+                    print("The child index is " + roomIndex);
 
-                    print("Null at " + getSister(getParent(childIndex)));
+                    print("Null at " + getSister(getParent(roomIndex)));
                     return;  
                     }
 
             }
 
+            // Get children of each room
+            List<int> room1Children = getAllLeafChildren(room1, rooms);
+            List<int> room2Children = getAllLeafChildren(room2, rooms);
 
-            string split = parent1.split;
-            List<int> parent1Children = getAllLeafChildren(getParent(childIndex), rooms);
-            List<int> parent2Children = getAllLeafChildren(getSister(getParent(childIndex)), rooms);
+            bool room1NoChildrenInstant = (room1Children.Count == 0);
+            bool room2NoChildrenInstant = (room2Children.Count == 0);
+            int currentRoom;
 
-            bool parent1NoChildren = (parent1Children.Count == 0);
-            bool parent2NoChildren = (parent2Children.Count == 0);
-            int currentParent = childIndex;
+            if (room1NoChildrenInstant ||  room2NoChildrenInstant)
+                return;  // nothing to connect
 
-            if (parent1NoChildren && parent2NoChildren)
-                return;
-            else if (parent1NoChildren) {
-                while(parent1NoChildren) {
-                    print("Going up");
-                    currentParent = getParent(currentParent);
-                    parent1Children = getAllLeafChildren(currentParent, rooms);
-                    parent1NoChildren = (parent1Children.Count == 0);
-                }
-            }
-            else if (parent2NoChildren){
-                while(parent2NoChildren) {
-                    print("Going up");
+            // Connecting of the rooms       
+            print(room1Children.Count);
+     
+            int connectRoom1Index = room1Children[ Random.Range(0, room1Children.Count - 1)];
+            Room connectRoom1 = rooms [connectRoom1Index];
+            print(room2Children.Count);
+            int connectRoom2Index = room2Children[ Random.Range(0, room2Children.Count - 1)];
+            Room connectRoom2 = rooms[connectRoom2Index];
+            addCorridor(connectRoom1, connectRoom2);
 
-                    currentParent = getParent(currentParent);
-                    parent2Children = getAllLeafChildren(currentParent, rooms);
-                    parent2NoChildren = (parent2Children.Count == 0);
-                }
-            }
-            
-            // for(int i = 0; i < parent1Children.Count; i++){
-            //     for(int j = 0; j < parent2Children.Count; j++){
-            //         if(canConnect(rooms[parent1Children[i]], rooms[parent2Children[j]], split)){
-            //             addCorridor(rooms[parent1Children[i]], rooms[parent2Children[j]], split);
-                    
-            //             // break out of both for loops
-            //             i = parent1Children.Count;
-            //             break;
-            //         } else{
+            connectRoom2.setConnectStatus(true);
 
-            //             if(i== parent1Children.Count-1 && j== parent2Children.Count-1)
-            //                 print("Could not count");
-
-            //         }
-            //     }
-
-            // }
-
-            parent1.setConnectStatus(true);
-            parent2.setConnectStatus(true);
-            
-            if (childIndex == 2 || childIndex == 3){
-                return;
-            }
-            print("This is the childIndex, " + childIndex + ", this is hte parent index, " + getParent(childIndex));
-            connectParents(getParent(childIndex), rooms);
+            connectRoom1.setConnectStatus(true);
+            print("This is the childIndex, " + roomIndex + ", this is hte parent index, " + getParent(roomIndex));
+            connectParents(getParent(roomIndex), rooms);
 
         }
+
 
         public void createRooms(){
             Room[] rooms = generateRooms();
@@ -483,9 +461,9 @@ public class RoomGenerator : MonoBehaviour
             print("Number of bottom row nodes: " + leaves.Count);
             placeRooms(leaves, rooms);
             connectSisters(leaves, rooms);
-            // for (int i =0; i < leaves.Count && i <maxRooms; i++){
-            //     connectParents(leaves[i], rooms);
-            // }
+            for (int i =0; i < leaves.Count && i <maxRooms; i++){
+                connectParents(leaves[i], rooms);
+            }
             
         }
         
