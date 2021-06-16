@@ -48,6 +48,9 @@ TagManager:
   - name: Corridors
     uniqueID: 2182370173
     locked: 0
+  - name: Items
+    uniqueID: 1256609327
+    locked: 0
   - name: Player
     uniqueID: 4062111211
     locked: 0

@@ -473,7 +473,6 @@ public class RoomGenerator : MonoBehaviour
 
         public void spawnEntities() {
             for (int i = 0; i < numberItems; i++) {
-                print("po");
                 // Pick a random room to generate in and random item to be generated
                 Room r = finalRooms[(int) Random.Range(0, finalRooms.Count - 1)];
                 GameObject itemPrefab = itemPrefabs[(int) Random.Range(0, itemPrefabs.Length - 1)];

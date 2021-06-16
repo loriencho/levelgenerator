@@ -36,9 +36,15 @@ public class PlayerManager : MonoBehaviour
         if (move){
             transform.Translate(v);
             hit = Physics2D.Raycast(transform.position, -transform.forward);
+            
             if (hit.collider == null)
                 transform.Translate(-v);
-            
+            else if ( hit.collider.gameObject.name.StartsWith("Item") ){
+                hit.collider.gameObject.SetActive(false);
+                print("Set active");
+
+            }
+
         }
 
 
