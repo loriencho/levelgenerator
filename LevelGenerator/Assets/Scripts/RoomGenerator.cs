@@ -96,13 +96,16 @@ public class RoomGenerator : MonoBehaviour
     [Range(100, 500)]
     public int dungeonWidth;
 
+    [Range(0, 50)]
+    public int numberItems;
+
+    public GameObject[] itemPrefabs = new GameObject[10];
+
     public GameObject roomPrefab;
     public GameObject corridorPrefab;
     public Transform dungeon;
 
-    public Tilemap roomMap;
-    public Tile corridorTile, floorTile;
-
+    private List<Room> finalRooms = new List<Room>();
 
     public Room[] expandRoomsArr(Room[] rooms){
         Room[] newArr = new Room[rooms.Length* 2];
@@ -235,6 +238,7 @@ public class RoomGenerator : MonoBehaviour
                 }
                 prev = r;
                 
+                finalRooms.Add(r);
 
             }
         }
@@ -270,7 +274,7 @@ public class RoomGenerator : MonoBehaviour
                 // Distance between centers is width
                 corridorWidth = Mathf.Abs(room1.getCenter().y - room2.getCenter().y); 
                 
-                GameObject go = Instantiate(corridorPrefab, new Vector3(x, y, 0), Quaternion.identity) as GameObject;          
+                GameObject go = Instantiate(corridorPrefab, new Vector3(x, y, 0), Quaternion.identity, dungeon) as GameObject;          
                 go.transform.localScale = new Vector3(100, corridorSize, 1);
                 return;
             }
@@ -284,7 +288,7 @@ public class RoomGenerator : MonoBehaviour
                 // Distance between centers is length
                 corridorLength = Mathf.Abs(room1.getCenter().x - room2.getCenter().x); 
 
-                GameObject go = Instantiate(corridorPrefab, new Vector3(x, y, 0), Quaternion.identity) as GameObject;          
+                GameObject go = Instantiate(corridorPrefab, new Vector3(x, y, 0), Quaternion.identity, dungeon) as GameObject;          
                 go.transform.localScale = new Vector3(corridorSize, 100, 1);
                 return;
             }
@@ -322,9 +326,9 @@ public class RoomGenerator : MonoBehaviour
                 Vector3 vCor  = new Vector3(roomA.getCenter().x, (y+ roomA.getCenter().y) / 2, 1.0f);
 
                 
-                GameObject hc = Instantiate(corridorPrefab, hCor, Quaternion.identity) as GameObject;          
+                GameObject hc = Instantiate(corridorPrefab, hCor, Quaternion.identity, dungeon) as GameObject;          
                 hc.transform.localScale = new Vector3(corridorLength, corridorSize, 1);
-                GameObject vc = Instantiate(corridorPrefab, vCor, Quaternion.identity) as GameObject;          
+                GameObject vc = Instantiate(corridorPrefab, vCor, Quaternion.identity, dungeon) as GameObject;          
                 vc.transform.localScale = new Vector3(corridorSize, corridorWidth, 1);
                 return;
 
@@ -445,7 +449,6 @@ public class RoomGenerator : MonoBehaviour
 
             bool room1NoChildrenInstant = (room1Children.Count == 0);
             bool room2NoChildrenInstant = (room2Children.Count == 0);
-            int currentRoom;
 
             if (room1NoChildrenInstant ||  room2NoChildrenInstant)
                 return;  // nothing to connect
@@ -468,6 +471,31 @@ public class RoomGenerator : MonoBehaviour
 
         }
 
+        public void spawnEntities() {
+            for (int i = 0; i < numberItems; i++) {
+                print("po");
+                // Pick a random room to generate in and random item to be generated
+                Room r = finalRooms[(int) Random.Range(0, finalRooms.Count - 1)];
+                GameObject itemPrefab = itemPrefabs[(int) Random.Range(0, itemPrefabs.Length - 1)];
+
+                // Making sure item isn't at room's edge
+                float xbuffer = r.getLength() * .25f;
+                float ybuffer = r.getWidth() * .25f;
+
+                // Pick a random location in the room
+                float x = Random.Range(r.getPt1().x + xbuffer, r.getPt2().x - xbuffer);
+                float y = Random.Range(r.getPt2().y + ybuffer, r.getPt1().y - ybuffer);
+
+                GameObject go = Instantiate(itemPrefab, new Vector3(x, y, 0), Quaternion.identity, dungeon) as GameObject;
+                go.transform.localScale = new Vector3(20, 20, 1);
+
+
+            
+            }
+            
+        }
+
+
 
         public void createRooms(){
             Room[] rooms = generateRooms();
@@ -475,6 +503,7 @@ public class RoomGenerator : MonoBehaviour
             List<int> leaves = getLeaves(rooms);
             print("Number of bottom row nodes: " + leaves.Count);
             placeRooms(leaves, rooms);
+            spawnEntities();
             // connectSisters(leaves, rooms);
             // for (int i =0; i < leaves.Count && i <maxRooms; i++){
             //     connectParents(leaves[i], rooms);
